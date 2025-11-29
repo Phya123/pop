@@ -1,0 +1,151 @@
+neighborlink-brain/
+│
+├─ package.json
+├─ server.js
+├─ routes/
+│   └─ glideWebhook.js
+├─ controllers/
+│   └─ brainController.js
+├─ utils/
+│   └─ xpEngine.js
+│   └─ logger.js
+└─ config/
+    └─ config.js
+{
+  "name": "neighborlink-brain",
+  "version": "1.0.0",
+  "description": "AI Brain backend for NeighborLink",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const glideWebhook = require('./routes/glideWebhook');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// Routes
+app.use('/api/glide/webhook', glideWebhook);
+
+// Basic health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'NeighborLink Brain is online' });
+});
+
+app.listen(PORT, () => {
+  console.log(`NeighborLink Brain running on port ${PORT}`);
+});
+const express = require('express');
+const router = express.Router();
+const brainController = require('../controllers/brainController');
+
+router.post('/', async (req, res) => {
+  try {
+    const response = await brainController.handleGlideWebhook(req.body);
+    res.json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+module.exports = router;
+const xpEngine = require('../utils/xpEngine');
+const logger = require('../utils/logger');
+
+const handleGlideWebhook = async (payload) => {
+  const { action, user_id, timestamp, page_name } = payload;
+
+  // Log webhook
+  logger.log(`Received action: ${action} from user: ${user_id}`);
+
+  let result = { status: 'unknown_action', action_performed: null };
+
+  switch (action) {
+    case 'claim_rewards':
+    case 'open_marketplace':
+    case 'add_item':
+    case 'offer_help':
+    case 'open_community':
+    case 'open_xp_home':
+    case 'open_directory':
+    case 'request_help':
+    case 'open_profile':
+      // Award XP if relevant
+      const xpAmount = xpEngine.computeXP(action);
+      xpEngine.awardXP(user_id, xpAmount, action);
+      result = { status: 'ok', action_performed: action, awarded_xp: xpAmount };
+      break;
+
+    case 'claim_nft':
+      // Placeholder NFT claim logic
+      result = { status: 'ok', action_performed: 'claim_nft', message: 'NFT claimed successfully' };
+      break;
+
+    case 'connect_phones':
+      // Placeholder phone connect logic
+      result = { status: 'ok', action_performed: 'connect_phones', message: 'Phone connection initiated' };
+      break;
+
+    default:
+      result = { status: 'error', message: 'Unknown action' };
+  }
+
+  return result;
+};
+
+module.exports = { handleGlideWebhook };
+// Simple XP Engine
+const xpEngine = {
+  computeXP: (action) => {
+    const xpRules = {
+      claim_rewards: 10,
+      open_marketplace: 5,
+      add_item: 20,
+      offer_help: 10,
+      open_community: 5,
+      open_xp_home: 0,
+      open_directory: 0,
+      request_help: 10,
+      open_profile: 0,
+      claim_nft: 50,
+      connect_phones: 0
+    };
+    return xpRules[action] || 0;
+  },
+
+  awardXP: (user_id, amount, source) => {
+    console.log(`Awarded ${amount} XP to ${user_id} for ${source}`);
+    // TODO: Add DB integration here
+  }
+};
+
+module.exports = xpEngine;
+const logger = {
+  log: (message) => {
+    console.log(`[${new Date().toISOString()}] ${message}`);
+  }
+};
+
+module.exports = logger;module.exports = {
+  AI_BRAIN_BASE_URL: 'https://api.neighborlink-brain.com',
+  HMAC_SECRET: '<YOUR_SECRET_KEY>'
+};
+
