@@ -1,0 +1,4 @@
+module.exports = {
+  AI_BRAIN_BASE_URL: 'https://neighborlink-backend-qdxw.onrender.com',
+  HMAC_SECRET: '<YOUR_SECRET_KEY>'
+};

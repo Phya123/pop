@@ -1,0 +1,23 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const glideWebhook = require('./routes/glideWebhook');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// Routes
+app.use('/api/glide/webhook', glideWebhook);
+
+// Basic health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'NeighborLink Brain is online' });
+});
+
+app.listen(PORT, () => {
+  console.log(`NeighborLink Brain running on port ${PORT}`);
+});
+er

@@ -1,0 +1,22 @@
+const xpEngine = {
+  computeXP: (action) => {
+    const xpRules = {
+      XP_POINTS: 10,
+      CLAIM_XP: 20,
+      MARKETPLACE: 5,
+      OFFER_HELP: 10,
+      OPEN_COMMUNITY: 5,
+      OPEN_DIRECTORY: 0,
+      REQUEST_HELP: 10,
+      PROFILE: 0,
+      NFT_CLAIM: 50,
+      CHAT: 0
+    };
+    return xpRules[action] || 0;
+  },
+  awardXP: (userId, amount, source) => {
+    console.log(`Awarded ${amount} XP to ${userId} for ${source}`);
+  }
+};
+
+module.exports = xpEngine;

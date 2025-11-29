@@ -1,0 +1,37 @@
+const xpEngine = require('../utils/xpEngine');
+const logger = require('../utils/logger');
+
+const handleGlideWebhook = async (payload) => {
+  const { action, userId, username, email, message } = payload;
+  logger.log(`Received action: ${action} from user: ${userId}`);
+
+  let result = { status: 'unknown_action', action_performed: null };
+
+  switch (action) {
+    case 'XP_POINTS':
+    case 'CLAIM_XP':
+    case 'MARKETPLACE':
+    case 'OFFER_HELP':
+    case 'OPEN_COMMUNITY':
+    case 'OPEN_DIRECTORY':
+    case 'REQUEST_HELP':
+    case 'PROFILE':
+      const xpAmount = xpEngine.computeXP(action);
+      xpEngine.awardXP(userId, xpAmount, action);
+      result = { status: 'ok', action_performed: action, awarded_xp: xpAmount };
+      break;
+    case 'NFT_CLAIM':
+      result = { status: 'ok', action_performed: 'NFT_CLAIM', message: 'NFT claimed successfully' };
+      break;
+    case 'CHAT':
+      // This is where AI response logic can be added
+      result = { status: 'ok', action_performed: 'CHAT', message: `Hello ${username}, you said: "${message}"` };
+      break;
+    default:
+      result = { status: 'error', message: 'Unknown action' };
+  }
+
+  return result;
+};
+
+module.exports = { handleGlideWebhook };
